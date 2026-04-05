@@ -9,7 +9,6 @@ import requests
 import pandas as pd
 import plotly.graph_objects as go
 import random
-from streamlit_extras.metric_cards import style_metric_cards
 
 API_URL = "http://localhost:5000"
 
@@ -100,6 +99,24 @@ st.markdown("""
 /* Ensure content is above starfield */
 .block-container { position: relative; z-index: 1; }
 
+/* Glowing wave title */
+@keyframes glow-wave {
+    0%, 100% { opacity: 0.4; text-shadow: none; transform: translateY(0px); }
+    50%       { opacity: 1; text-shadow: 0 0 20px rgba(99,179,237,0.9), 0 0 40px rgba(99,179,237,0.4); transform: translateY(-5px); }
+}
+.rainbow-title {
+    display: flex;
+    gap: 1px;
+    margin-bottom: 0.5rem;
+}
+.rainbow-title span {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: #90cdf4;
+    animation: glow-wave 2.5s ease-in-out infinite;
+    display: inline-block;
+}
+
 /* Hero banner */
 .hero {
     background: linear-gradient(135deg, #1a2744 0%, #0f1e35 60%, #162040 100%);
@@ -149,7 +166,9 @@ st.markdown("""
 
 /* Fare result */
 .fare-result {
-    background: linear-gradient(135deg, #1a3a5c 0%, #0f2a45 100%);
+    background: linear-gradient(135deg, rgba(26,58,92,0.7) 0%, rgba(15,42,69,0.7) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(99,179,237,0.4);
     border-radius: 20px;
     padding: 2rem;
@@ -173,8 +192,10 @@ st.markdown("""
     justify-content: center;
     gap: 1rem;
     padding: 1.2rem 2rem;
-    background: rgba(99,179,237,0.08);
-    border-radius: 12px;
+    background: rgba(99,179,237,0.06);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(99,179,237,0.12);
+    border-radius: 14px;
     margin: 1rem 0;
 }
 .city-code { font-size: 2rem; font-weight: 700; color: #bee3f8; }
@@ -288,6 +309,63 @@ st.markdown("""
 }
 .fare-result { animation: pulse-ring 2.5s ease-out 3; }
 
+/* Glassmorphism panels */
+.glass-panel {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(99,179,237,0.18);
+    border-radius: 18px;
+    padding: 1.5rem;
+}
+
+/* Animated route dashes */
+@keyframes dash-move {
+    0%   { stroke-dashoffset: 20; }
+    100% { stroke-dashoffset: 0; }
+}
+.route-dash-svg { width: 100%; height: 24px; overflow: visible; }
+.route-dash-line {
+    stroke: rgba(99,179,237,0.5);
+    stroke-width: 2;
+    stroke-dasharray: 8 5;
+    fill: none;
+    animation: dash-move 1s linear infinite;
+}
+
+/* Sticky fare badge */
+.sticky-fare {
+    position: fixed;
+    top: 1.2rem;
+    right: 1.5rem;
+    background: linear-gradient(135deg, #1a3a5c, #0f2a45);
+    border: 1px solid rgba(99,179,237,0.45);
+    border-radius: 30px;
+    padding: 0.45rem 1.1rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #90cdf4;
+    z-index: 9998;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+    animation: fade-in-down 0.5s ease;
+}
+@keyframes fade-in-down {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Dot-grid background overlay */
+.stApp::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(rgba(99,179,237,0.07) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+    z-index: 0;
+}
+
 /* Savings badge */
 .savings-badge {
     display: inline-block;
@@ -328,7 +406,18 @@ st.markdown(stars_html, unsafe_allow_html=True)
 # ─── Hero ───
 st.markdown("""
 <div class="hero">
-    <h1>SkyFare ✈️</h1>
+    <h1 style="display:none">SkyFare</h1>
+    <div class="rainbow-title">
+        <span style="color:#90cdf4;animation-delay:0.0s">S</span>
+        <span style="color:#90cdf4;animation-delay:0.2s">k</span>
+        <span style="color:#90cdf4;animation-delay:0.4s">y</span>
+        <span style="color:#90cdf4;animation-delay:0.6s">F</span>
+        <span style="color:#90cdf4;animation-delay:0.8s">a</span>
+        <span style="color:#90cdf4;animation-delay:1.0s">r</span>
+        <span style="color:#90cdf4;animation-delay:1.2s">e</span>
+        <span style="animation-delay:0.7s">&#x20;</span>
+        <span style="font-size:2rem;animation-delay:0.8s;animation: bounce-letter 1.2s ease-in-out infinite;animation-delay:0.8s">✈️</span>
+    </div>
     <p>AI-powered domestic flight fare predictor for Indian routes · Gradient Boosting · R² 0.98</p>
     <div style="display:flex;gap:2rem;margin-top:1.2rem;">
         <div style="color:#4a6fa5;font-size:0.8rem;">🛫 <span style="color:#63b3ed;font-weight:600;">10</span> Cities</div>
@@ -354,10 +443,8 @@ except Exception:
 left, right = st.columns([1.1, 0.9], gap="large")
 
 with left:
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="card-title">🛫 Flight Details</div>', unsafe_allow_html=True)
-
     with st.form("fare_form"):
+        st.markdown('<div class="card-title">🛫 Flight Details</div>', unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         with c1:
             source_city    = st.selectbox("From 📍", opts["cities"], key="src")
@@ -374,8 +461,6 @@ with left:
 
         st.markdown("<br>", unsafe_allow_html=True)
         submitted = st.form_submit_button("✈️  Predict Fare", use_container_width=True)  # noqa
-
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # ─── Results Panel ───
 with right:
@@ -406,24 +491,65 @@ with right:
             }
 
             try:
-                skel = st.empty()
-                skel.markdown("""
-                <div class="skeleton-wrap">
-                    <div class="skeleton skeleton-title"></div>
-                    <div class="skeleton skeleton-line"></div>
-                    <div class="skeleton skeleton-line-s"></div>
-                    <div class="skeleton skeleton-box"></div>
-                    <div class="skeleton skeleton-line"></div>
-                </div>
-                """, unsafe_allow_html=True)
+                import time
+                loader = st.empty()
+                status_msgs = [
+                    ("🛫", "Scanning routes..."),
+                    ("📡", "Connecting to fare engine..."),
+                    ("🔍", "Analysing booking window..."),
+                    ("📊", "Crunching 2,000 records..."),
+                    ("🤖", "Running Gradient Boost model..."),
+                    ("💰", "Calculating best fare..."),
+                ]
+                for step, (icon, msg) in enumerate(status_msgs):
+                    pct = int((step + 1) / len(status_msgs) * 100)
+                    plane_pos = pct
+                    loader.markdown(f"""
+                    <div class="skeleton-wrap" style="padding:2rem 2.5rem;">
+                        <div style="font-size:2.2rem;margin-bottom:0.6rem;">{icon}</div>
+                        <div style="color:#90cdf4;font-weight:600;font-size:1rem;margin-bottom:1.4rem;">{msg}</div>
+                        <div style="position:relative;height:36px;background:rgba(99,179,237,0.07);
+                                    border:1px solid rgba(99,179,237,0.15);border-radius:20px;overflow:hidden;">
+                            <div style="position:absolute;top:0;left:0;height:100%;width:{pct}%;
+                                        background:linear-gradient(90deg,rgba(99,179,237,0.25),rgba(99,179,237,0.5));
+                                        border-radius:20px;transition:width 0.3s ease;"></div>
+                            <div style="position:absolute;top:50%;left:calc({plane_pos}% - 14px);
+                                        transform:translateY(-50%);font-size:1.3rem;transition:left 0.3s ease;">✈️</div>
+                        </div>
+                        <div style="color:#4a6fa5;font-size:0.78rem;margin-top:0.8rem;">
+                            {'&nbsp;'.join(['<span style="color:#63b3ed">●</span>' if i <= step else '<span style="color:#2d4a6e">●</span>' for i in range(len(status_msgs))])}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    time.sleep(0.18)
                 response = requests.post(f"{API_URL}/predict", json=payload, timeout=5)
-                skel.empty()
+                loader.empty()
                 result = response.json()
 
                 if response.status_code == 200:
                     fare    = result["predicted_fare_inr"]
                     band    = result["fare_band"]
                     summary = result["input_summary"]
+
+                    # ── Sticky fare badge ──
+                    st.markdown(f'<div class="sticky-fare">✈️ ₹{fare:,}</div>', unsafe_allow_html=True)
+
+                    # ── Slot Machine Fare Reveal ──
+                    slot = st.empty()
+                    steps = 20
+                    for i in range(steps):
+                        roll = random.randint(fare - 3000, fare + 3000)
+                        roll = max(999, roll)
+                        speed = 0.03 if i < 10 else 0.06 if i < 16 else 0.12
+                        slot.markdown(f"""
+                        <div class="fare-result" style="border-color:rgba(99,179,237,{0.2 + i*0.04:.1f})">
+                            <div class="fare-label">CALCULATING FARE...</div>
+                            <div class="fare-amount" style="opacity:{0.4 + i*0.03:.1f}">₹{roll:,}</div>
+                            <div class="fare-label">🎰 Rolling...</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        time.sleep(speed)
+                    slot.empty()
 
                     # ── Confetti if cheap fare ──
                     cheap_threshold = band["low"] * 0.95
@@ -473,16 +599,20 @@ with right:
                     stop_icon = "🟢" if stops == "non-stop" else ("🟡" if stops == "1 stop" else "🔴")
                     st.markdown(f"""
                     <div class="route-bar">
-                        <div>
+                        <div style="text-align:center">
                             <div class="city-code">{src_code}</div>
-                            <div style="color:#4a6fa5;font-size:0.75rem;text-align:center">{source_city}</div>
+                            <div style="color:#4a6fa5;font-size:0.75rem">{source_city}</div>
                         </div>
-                        <div class="route-line">
-                            <hr/>{stop_icon}<hr/>
+                        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+                            <div style="font-size:0.7rem;color:#4a6fa5">{stop_icon} {stops} &nbsp;·&nbsp; {duration_hours}h</div>
+                            <svg class="route-dash-svg" viewBox="0 0 200 12" preserveAspectRatio="none">
+                                <path class="route-dash-line" d="M 0 6 Q 100 0 200 6"/>
+                            </svg>
+                            <div style="font-size:1.1rem">✈️</div>
                         </div>
-                        <div>
+                        <div style="text-align:center">
                             <div class="city-code">{dst_code}</div>
-                            <div style="color:#4a6fa5;font-size:0.75rem;text-align:center">{destination_city}</div>
+                            <div style="color:#4a6fa5;font-size:0.75rem">{destination_city}</div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -499,34 +629,95 @@ with right:
 
                     st.markdown(f'<div class="{tip_class}" style="margin:0.8rem 0">{tip_text}</div>', unsafe_allow_html=True)
 
-                    # ── Trip Metrics ──
-                    m1, m2, m3 = st.columns(3)
-                    m1.metric("Airline", airline)
-                    m2.metric("Class", seat_class)
-                    m3.metric("Stops", stops)
-                    m4, m5, m6 = st.columns(3)
-                    m4.metric("Duration", f"{duration_hours} hrs")
-                    m5.metric("Days Left", f"{days_before} days")
-                    m6.metric("Departure", departure_time.split('(')[0].strip())
-                    style_metric_cards(
-                        background_color="rgba(255,255,255,0.03)",
-                        border_left_color="#63b3ed",
-                        border_color="rgba(99,179,237,0.15)",
-                        box_shadow=False,
-                    )
-
                 else:
                     st.markdown(f'<div class="tip-danger">❌ {result.get("error", "Unknown error")}</div>', unsafe_allow_html=True)
 
             except requests.exceptions.ConnectionError:
                 st.markdown('<div class="tip-danger">❌ Could not reach the API. Is app.py running?</div>', unsafe_allow_html=True)
 
+# ─── Row 2: Trip Summary full width + Nerd Stats ───
+if submitted and source_city != destination_city:
+    try:
+        if response.status_code == 200:
+            st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+            st.markdown('<div class="card-title">📋 Trip Summary</div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:0.8rem;margin-bottom:1rem;">
+                <div class="metric-item"><div class="label">✈ Airline</div><div class="value">{airline}</div></div>
+                <div class="metric-item"><div class="label">💺 Class</div><div class="value">{seat_class}</div></div>
+                <div class="metric-item"><div class="label">🔁 Stops</div><div class="value">{stops}</div></div>
+                <div class="metric-item"><div class="label">⏱ Duration</div><div class="value">{duration_hours} hrs</div></div>
+                <div class="metric-item"><div class="label">📅 Days Left</div><div class="value">{days_before} days</div></div>
+                <div class="metric-item"><div class="label">🕐 Departure</div><div class="value">{departure_time.split('(')[0].strip()}</div></div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # ── Nerd Stats Terminal ──
+            import json as _json
+            conf_pct = round((1 - (band["high"] - band["low"]) / fare) * 100, 1)
+            fare_per_hr = round(fare / duration_hours)
+            biz_premium = round((int(fare * 2.8) - fare) / fare * 100, 1)
+            terminal_json = _json.dumps(result, indent=2, ensure_ascii=False)
+            lines_html = ""
+            for line in terminal_json.splitlines():
+                stripped = line.strip()
+                if stripped.startswith('"') and ":" in stripped:
+                    key, _, rest = stripped.partition(":")
+                    comma = "<span style='color:#8b949e'>,</span>" if rest.strip().endswith(",") else ""
+                    val = rest.strip().rstrip(",")
+                    indent_spaces = "&nbsp;" * (len(line) - len(line.lstrip()))
+                    if val.lstrip("-").isdigit():
+                        val_html = f"<span style='color:#79c0ff'>{val}</span>"
+                    elif val.startswith('"'):
+                        val_html = f"<span style='color:#a5d6ff'>{val}</span>"
+                    else:
+                        val_html = f"<span style='color:#ffa657'>{val}</span>"
+                    lines_html += f"{indent_spaces}<span style='color:#ff7b72'>{key}</span><span style='color:#8b949e'>:</span> {val_html}{comma}<br>"
+                else:
+                    lines_html += f"<span style='color:#8b949e'>{line}</span><br>"
+
+            st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+            with st.expander("🖥️  Nerd Stats & Raw API Response", expanded=False):
+                st.markdown(f"""
+                <div style="background:#0d1117;border:1px solid #30363d;border-radius:12px;
+                            padding:1.2rem 1.5rem;font-family:'Courier New',monospace;font-size:0.8rem;line-height:1.8;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.8rem;
+                                padding-bottom:0.6rem;border-bottom:1px solid #21262d;">
+                        <span style="width:12px;height:12px;border-radius:50%;background:#ff5f57;display:inline-block;"></span>
+                        <span style="width:12px;height:12px;border-radius:50%;background:#febc2e;display:inline-block;"></span>
+                        <span style="width:12px;height:12px;border-radius:50%;background:#28c840;display:inline-block;"></span>
+                        <span style="color:#8b949e;font-size:0.72rem;margin-left:0.4rem;">skyfare · model · v1.0 · GBR</span>
+                    </div>
+                    <span style="color:#6e7681;"># ── model stats ──────────────────</span><br>
+                    <span style="color:#ff7b72;">algorithm</span><span style="color:#8b949e;">:</span>     <span style="color:#a5d6ff;">GradientBoostingRegressor</span><br>
+                    <span style="color:#ff7b72;">n_estimators</span><span style="color:#8b949e;">:</span>  <span style="color:#79c0ff;">200</span><br>
+                    <span style="color:#ff7b72;">max_depth</span><span style="color:#8b949e;">:</span>     <span style="color:#79c0ff;">5</span><br>
+                    <span style="color:#ff7b72;">learning_rate</span><span style="color:#8b949e;">:</span> <span style="color:#79c0ff;">0.1</span><br>
+                    <span style="color:#ff7b72;">r2_score</span><span style="color:#8b949e;">:</span>      <span style="color:#3fb950;">0.98</span><br>
+                    <span style="color:#ff7b72;">features</span><span style="color:#8b949e;">:</span>      <span style="color:#79c0ff;">9</span>  <span style="color:#6e7681;"># label-encoded + numeric</span><br>
+                    <br>
+                    <span style="color:#6e7681;"># ── this prediction ──────────────</span><br>
+                    <span style="color:#ff7b72;">fare_inr</span><span style="color:#8b949e;">:</span>      <span style="color:#79c0ff;">₹{fare:,}</span><br>
+                    <span style="color:#ff7b72;">band_low</span><span style="color:#8b949e;">:</span>      <span style="color:#79c0ff;">₹{band['low']:,}</span>  <span style="color:#6e7681;"># -8%</span><br>
+                    <span style="color:#ff7b72;">band_high</span><span style="color:#8b949e;">:</span>     <span style="color:#79c0ff;">₹{band['high']:,}</span>  <span style="color:#6e7681;"># +8%</span><br>
+                    <span style="color:#ff7b72;">fare_per_hr</span><span style="color:#8b949e;">:</span>   <span style="color:#ffa657;">₹{fare_per_hr:,}/hr</span><br>
+                    <span style="color:#ff7b72;">biz_premium</span><span style="color:#8b949e;">:</span>   <span style="color:#ffa657;">+{biz_premium}%</span>  <span style="color:#6e7681;"># vs economy</span><br>
+                    <span style="color:#ff7b72;">days_bucket</span><span style="color:#8b949e;">:</span>   <span style="color:#a5d6ff;">"{'last-min' if days_before <= 3 else 'urgent' if days_before <= 7 else 'normal' if days_before <= 30 else 'early'}"</span><br>
+                    <br>
+                    <span style="color:#6e7681;"># ── raw response ─────────────────</span><br>
+                    <span style="color:#8b949e;">$ curl -X POST localhost:5000/predict</span><br>
+                    <span style="color:#3fb950;">✓ 200 OK · ~12ms</span><br><br>
+                    {lines_html}
+                </div>
+                """, unsafe_allow_html=True)
+    except Exception:
+        pass
+
 # ─── Gauge + Charts Section ───
 if submitted and source_city != destination_city:
     try:
-        result
         if response.status_code == 200:
-            st.markdown("<hr class='custom-divider'>", unsafe_allow_html=True)
+            st.markdown("<div style='display:flex;align-items:center;gap:0.8rem;margin:1.5rem 0;'><div style='flex:1;border-top:1px solid rgba(99,179,237,0.1);'></div><span style='color:#4a6fa5;font-size:0.85rem;'>&#9135;&#9135;&#9135; &#x2708;&#xFE0F; &#9135;&#9135;&#9135;</span><div style='flex:1;border-top:1px solid rgba(99,179,237,0.1);'></div></div>", unsafe_allow_html=True)
 
             # ── Fare Gauge full width ──
             st.markdown('<div class="section-label">🎯 Fare Position — Cheap vs Expensive for this Route</div>', unsafe_allow_html=True)
@@ -572,7 +763,7 @@ if submitted and source_city != destination_city:
             </div>
             """, unsafe_allow_html=True)
 
-            st.markdown("<hr class='custom-divider'>", unsafe_allow_html=True)
+            st.markdown("<div style='display:flex;align-items:center;gap:0.8rem;margin:1.5rem 0;'><div style='flex:1;border-top:1px solid rgba(99,179,237,0.1);'></div><span style='color:#4a6fa5;font-size:0.85rem;'>&#9135;&#9135;&#9135; &#x2708;&#xFE0F; &#9135;&#9135;&#9135;</span><div style='flex:1;border-top:1px solid rgba(99,179,237,0.1);'></div></div>", unsafe_allow_html=True)
             ch1, ch2 = st.columns(2)
 
             # Chart 1: Fare vs Days Before Departure
